@@ -90,17 +90,13 @@
         this.unset(railsAssociation, {silent: true});
       };
 
+  /**
+  *
+  *   @public
+  *   @class
+  *
+  */
   Backbone.RailsModel = Backbone.Model.extend({
-
-    /**
-    *
-    *   @public
-    *   @type {Array}
-    *
-    *   Array of hasMany associations (empty by default)
-    *
-    */
-    hasMany: [],
 
     /**
     *
