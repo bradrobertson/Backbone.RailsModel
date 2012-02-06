@@ -76,18 +76,21 @@
       /**
       *   @private
       *   @binding {Backbone.RailsModel}
-      *   @param {String} type The type of association (collection|model)
-      *   @param {Object} properties The properties for this particular association (ie. which model/collection to uset etc...)
-      *   @param {String} association The name of the association to set
+      *   @param {String} type Type of association to create
+      *   @return {Function} to iterate over associations and create them
       *
       *   Creates the associated model and populates it with data
       *   Note this is not set on attributes, but directly on the model itself
       *
       */
-      createAssociation = function(type, properties, association){
-        var railsAssociation = underscored(association);
-        this[association] = new properties[type](this.get( railsAssociation ));
-        this.unset(railsAssociation, {silent: true});
+      createAssociation = function(type){
+        var self = this;
+        
+        return function(properties, association){
+          var railsAssociation = underscored(association);
+          self[association] = new properties[type](self.get( railsAssociation ));
+          self.unset(railsAssociation, {silent: true});
+        };
       };
 
   /**
@@ -106,16 +109,10 @@
     *
     */
     constructor: function(){
-      var self = this;
       Backbone.Model.prototype.constructor.apply(this, arguments);
 
-      _.each(this.hasMany, function(properties, association){
-        createAssociation.call(self, 'collection', properties, association);
-      });
-      
-      _.each(this.hasOne, function(properties, association){
-        createAssociation.call(self, 'model', properties, association);
-      });
+      _.each(this.hasMany, createAssociation.call(this, 'collection'));
+      _.each(this.hasOne, createAssociation.call(this, 'model'));
     },
 
     /**
