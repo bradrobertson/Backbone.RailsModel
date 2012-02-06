@@ -40,6 +40,8 @@
       /**
       *
       *   @private
+      *
+      *   @return {String} Trimmed string
       *   
       *   Trim whitespace from the front and back of a string
       */
@@ -51,6 +53,8 @@
       *   @private
       *   @param {String} string The string to be converted
       *
+      *   @return {String} Camelized string 
+      *
       *   Convert underscored string into camelcase (taken from undescore.string.js)
       */
       camelize = function(string){
@@ -61,7 +65,9 @@
       /**
       *
       *   @private
-      *   @param {String} string The string to be converted      
+      *   @param {String} string The string to be converted
+      *
+      *   @return {String} Underscored string
       *
       *   Convert camelcased string into underscored (taken from undescore.string.js)
       */
@@ -77,6 +83,7 @@
       *   @private
       *   @binding {Backbone.RailsModel}
       *   @param {String} type Type of association to create
+      *
       *   @return {Function} to iterate over associations and create them
       *
       *   Creates the associated model and populates it with data
@@ -140,5 +147,4 @@
     }
 
   });
-
 })();
