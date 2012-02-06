@@ -20,10 +20,10 @@ describe("RailsModel", function() {
     expect(book.attributes).toBeDefined();
   });
 
-  describe("hasMany associations", function() {
+  describe("Associations Using Nested Attributes", function() {
     
     beforeEach(function() {
-      Book = Backbone.RailsModel.extend(hasManyNested);
+      Book = Backbone.RailsModel.extend(nestedAssociations);
     });
 
     describe("Empty model", function() {
@@ -35,23 +35,21 @@ describe("RailsModel", function() {
         expect(book.pages instanceof Collections.Pages).toBeTruthy();
         expect(book.customerReviews instanceof Collections.CustomerReviews).toBeTruthy();
       });
+      
+      it("should have models set", function(){
+        expect(book.author instanceof Models.Author).toBeTruthy();
+        expect(book.publishingHouse instanceof Models.PublishingHouse).toBeTruthy();
+      });
 
       describe("serialization", function() {
-        it("should not contain the books and reviews collections", function() {
+        it("should not contain the collections", function() {
           expect(book.toJSON().pages_attributes).toBeUndefined();
           expect(book.toJSON().customer_reviews_attributes).toBeUndefined();
         });
         
-        describe("asNestedAttributes: false", function(){
-          beforeEach(function(){
-            Book = Backbone.RailsModel.extend(hasManyNotNested);
-            book = new Book();
-          });
-          
-          it("should not contain the books and reviews collection", function() {
-            expect(book.toJSON().pages).toBeUndefined();
-            expect(book.toJSON().customer_reviews).toBeUndefined();
-          });
+        it("should not contain the models", function() {
+          expect(book.toJSON().author_attributes).toBeUndefined();
+          expect(book.toJSON().publishing_house_attributes).toBeUndefined();
         });
       });
 
@@ -59,10 +57,7 @@ describe("RailsModel", function() {
 
     describe("Populated model", function() {
       beforeEach(function() {
-        book = new Book({
-          pages: [{one:1}, {two:2}],
-          customer_reviews: [{one:'great'},{two:'mediocre'},{three:'soso'}]
-        });
+        book = new Book(sampleBook);
       });
 
       it("should have a populated each collection", function() {
@@ -75,10 +70,20 @@ describe("RailsModel", function() {
         expect(book.customerReviews.at(1).get('two')).toEqual('mediocre');
         expect(book.customerReviews.at(2).get('three')).toEqual('soso');
       });
+      
+      it("should have populated each model", function(){
+        expect(book.author.get('name')).toEqual('John Doe');
+        expect(book.publishingHouse.get('name')).toEqual('Books co.');
+      });
 
-      it("should not have the collection set as attributes", function(){
+      it("should not have the passed in collection names set as attributes", function(){
         expect(book.get('pages')).toBeUndefined();
         expect(book.get('customer_reviews')).toBeUndefined();
+      });
+      
+      it("should not have the passed in model names set as attributes", function(){
+        expect(book.get('author')).toBeUndefined();
+        expect(book.get('publishing_house')).toBeUndefined();
       });
 
       describe("serialization", function() {
@@ -89,34 +94,81 @@ describe("RailsModel", function() {
           expect(book.toJSON().customer_reviews_attributes).toBeDefined();
           expect(book.toJSON().customer_reviews_attributes[0].one).toEqual('great');
         });
+        
+        it("should have model attributes set", function(){
+          expect(book.toJSON().author_attributes).toBeDefined();
+          expect(book.toJSON().author_attributes.name).toEqual('John Doe');
+          
+          expect(book.toJSON().publishing_house_attributes).toBeDefined();
+          expect(book.toJSON().publishing_house_attributes.name).toEqual('Books co.');
+        });
 
         it("should not have pages or customer_reviews", function() {
           expect(book.toJSON().pages).toBeUndefined();
           expect(book.toJSON().customer_reviews).toBeUndefined();
         });
+        
+        it("should not have author or publishing_house", function() {
+          expect(book.toJSON().author).toBeUndefined();
+          expect(book.toJSON().publishing_house).toBeUndefined();
+        });
+      });
+    });
+  });
+  
+  describe("Associations Without Using Nested Attributes", function() {
+    
+    beforeEach(function() {
+      Book = Backbone.RailsModel.extend(nonNestedAssociations);
+    });
 
-        describe("asNestedAttributes: false", function() {
-          beforeEach(function() {
-            Book = Backbone.RailsModel.extend(hasManyNotNested);
+    describe("serialization", function(){
+      
+      describe("empty model", function(){
+        beforeEach(function(){
+          book = new Book();
+        });
 
-            book = new Book({
-              pages: [{one:1}, {two:2}],
-              customer_reviews: [{one:'great'},{two:'mediocre'},{three:'soso'}]
-            });
-          });
+        it("should not include collections", function() {
+          expect(book.toJSON().pages).toBeUndefined();
+          expect(book.toJSON().customer_reviews).toBeUndefined();
+        });
+        
+        it("should not include models", function() {
+          expect(book.toJSON().author).toBeUndefined();
+          expect(book.toJSON().publishing_house).toBeUndefined();
+        });
+      });
+      
+      describe("populated model", function() {
+        beforeEach(function() {
+          book = new Book(sampleBook);
+        });
 
-          it("should have pages", function(){
-            expect(book.toJSON().pages).toBeDefined();
-            expect(book.toJSON().pages[0].one).toEqual(1);
-            
-            expect(book.toJSON().customer_reviews).toBeDefined();
-            expect(book.toJSON().customer_reviews[0].one).toEqual('great');
-          });
+        it("should include collections", function(){
+          expect(book.toJSON().pages).toBeDefined();
+          expect(book.toJSON().pages[0].one).toEqual(1);
+          
+          expect(book.toJSON().customer_reviews).toBeDefined();
+          expect(book.toJSON().customer_reviews[0].one).toEqual('great');
+        });
+        
+        it("should include models", function(){
+          expect(book.toJSON().author).toBeDefined();
+          expect(book.toJSON().author.name).toEqual('John Doe');
+          
+          expect(book.toJSON().publishing_house).toBeDefined();
+          expect(book.toJSON().publishing_house.name).toEqual('Books co.');
+        });
 
-          it("should not have pages_attributes", function() {
-            expect(book.toJSON().pages_attributes).toBeUndefined();
-            expect(book.toJSON().customer_reviews_attributes).toBeUndefined();
-          });
+        it("should not have _attributes collections", function() {
+          expect(book.toJSON().pages_attributes).toBeUndefined();
+          expect(book.toJSON().customer_reviews_attributes).toBeUndefined();
+        });
+        
+        it("should not have _attributes models", function() {
+          expect(book.toJSON().author_attributes).toBeUndefined();
+          expect(book.toJSON().publishing_house_attributes).toBeUndefined();
         });
       });
     });

@@ -31,6 +31,11 @@
 */
 (function(){
   
+  /**
+  *
+  *   Some String utility functions to work with camelCase and underscore strings
+  *
+  */
   var 
       /**
       *
@@ -66,7 +71,24 @@
           replace(/([a-z\d])([A-Z]+)/g, '$1_$2').
           replace(/\-|\s+/g, '_').toLowerCase();
       };
-
+    
+    var 
+      /**
+      *   @private
+      *   @binding {Backbone.RailsModel}
+      *   @param {String} type The type of association (collection|model)
+      *   @param {Object} properties The properties for this particular association (ie. which model/collection to uset etc...)
+      *   @param {String} association The name of the association to set
+      *
+      *   Creates the associated model and populates it with data
+      *   Note this is not set on attributes, but directly on the model itself
+      *
+      */
+      createAssociation = function(type, properties, association){
+        var railsAssociation = underscored(association);
+        this[association] = new properties[type](this.get( railsAssociation ));
+        this.unset(railsAssociation, {silent: true});
+      };
 
   Backbone.RailsModel = Backbone.Model.extend({
 
@@ -92,9 +114,11 @@
       Backbone.Model.prototype.constructor.apply(this, arguments);
 
       _.each(this.hasMany, function(properties, association){
-        var railsAssociation = underscored(association);
-        self[association] = new properties.collection(self.get( railsAssociation ));
-        self.unset(railsAssociation, {silent: true});
+        createAssociation.call(self, 'collection', properties, association);
+      });
+      
+      _.each(this.hasOne, function(properties, association){
+        createAssociation.call(self, 'model', properties, association);
       });
     },
 
@@ -110,10 +134,11 @@
       var self = this,
           attrs = _.clone(this.attributes);
 
-      _.each(this.hasMany, function(properties, association){
-        var associationKey = underscored(association) + (properties.asNestedAttributes === false ? "" : "_attributes");
+      _.each(_.extend({}, this.hasOne, this.hasMany), function(properties, association){
 
-        if ( self[association].length ){
+        // checking for either: length (if collection), or populated attributes (if model)
+        if ( self[association].length || !_.isEmpty(self[association].attributes)){
+          var associationKey = underscored(association) + (properties.asNestedAttributes === false ? "" : "_attributes");
           attrs[associationKey] = self[association].toJSON();
         }
       });

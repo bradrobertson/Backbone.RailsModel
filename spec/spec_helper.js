@@ -1,11 +1,13 @@
 var Models = {},
     Collections = {},
-    hasManyNested,
-    hasOneNested,
-    hasOneAndManyNested,
-    hasManyNotNested,
-    hasOneNotNested,
-    hasOneAndManyNotNested;
+    nestedAssociations,
+    nonNestedAssociations,
+    sampleBook = {
+      pages: [{one:1}, {two:2}],
+      customer_reviews: [{one:'great'},{two:'mediocre'},{three:'soso'}],
+      author: {name:'John Doe', phone: '123-456-7890'},
+      publishing_house: {name: 'Books co.', phone: '012-345-6789'}
+    };
 
 beforeEach(function(){
   Models.Author = Backbone.Model.extend();
@@ -14,7 +16,7 @@ beforeEach(function(){
   Collections.Pages = Backbone.RailsNestedAttributesCollection.extend();
   Collections.CustomerReviews = Backbone.RailsNestedAttributesCollection.extend();
   
-  hasManyNested = {
+  nestedAssociations = {
     hasMany: {
       pages: {
         collection: Collections.Pages
@@ -22,10 +24,7 @@ beforeEach(function(){
       customerReviews: {
         collection: Collections.CustomerReviews
       }
-    }
-  };
-
-  hasOneNested = {
+    },
     hasOne: {
       author: {
         model: Models.Author
@@ -36,9 +35,7 @@ beforeEach(function(){
     }
   };
 
-  hasOneAndManyNested = _.extend(hasManyNested, hasOneNested);
-  
-  hasManyNotNested = {
+  nonNestedAssociations = {
     hasMany: {
       pages: {
         collection: Collections.Pages,
@@ -48,10 +45,7 @@ beforeEach(function(){
         collection: Collections.CustomerReviews,
         asNestedAttributes: false
       }
-    }
-  };
-
-  hasOneNotNested = {
+    },
     hasOne: {
       author: {
         model: Models.Author,
@@ -64,5 +58,4 @@ beforeEach(function(){
     }
   };
 
-  hasOneAndManyNotNested = _.extend(hasManyNotNested, hasOneNotNested);
 });
